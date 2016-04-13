@@ -66,6 +66,7 @@ class LoggingFiltersTest(SimpleTestCase):
             self.assertEqual(filter_.filter("record is not used"), False)
 
 
+@override_settings(ROOT_URLCONF='logging_tests.urls')
 class DefaultLoggingTest(LoggingCaptureMixin, SimpleTestCase):
 
     @classmethod
@@ -104,6 +105,16 @@ class DefaultLoggingTest(LoggingCaptureMixin, SimpleTestCase):
         with self.settings(DEBUG=True):
             self.logger.debug('debug')
             self.assertEqual(self.logger_output.getvalue(), '')
+
+    def test_page_found_no_warning(self):
+        with self.settings(DEBUG=True):
+            self.client.get('/innocent/')
+            self.assertEqual(self.logger_output.getvalue(), '')
+
+    def test_page_not_found_warning(self):
+        with self.settings(DEBUG=True):
+            self.client.get('/does_not_exist/')
+            self.assertEqual(self.logger_output.getvalue(), 'Not Found: /does_not_exist/\n')
 
 
 class WarningLoggerTests(SimpleTestCase):
